@@ -5,7 +5,7 @@ services:
     image: "consul"
     restart: always
     ports:
-      - "8500:8500"
+      - "127.0.0.1:8500:8500"
       - "127.0.1.5:53:8600/tcp"
       - "127.0.1.5:53:8600/udp"
     expose:
@@ -13,6 +13,11 @@ services:
       - "8500"
       - "8600/tcp"
       - "8600/udp"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "20"
     command: "agent -dev -client=0.0.0.0 -bind=0.0.0.0 -domain=consul.test"
 
   registrator:
