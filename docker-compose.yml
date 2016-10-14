@@ -1,30 +1,171 @@
 version: "2"
 
 services:
+
   consul:
     image: "consul"
-    restart: always
-    ports:
-      - "127.0.0.1:8500:8500"
-      - "127.0.1.5:53:8600/tcp"
-      - "127.0.1.5:53:8600/udp"
-    expose:
-      - "8400"
-      - "8500"
-      - "8600/tcp"
-      - "8600/udp"
+    command: "agent -dev -client=0.0.0.0 -bind=0.0.0.0 -domain=consul.test"
+    labels:
+      SERVICE_NAME: "consul-local"
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "20"
-    command: "agent -dev -client=0.0.0.0 -bind=0.0.0.0 -domain=consul.test"
+        max-file: "10"
+    ports:
+      - "127.0.1.5:53:8600/tcp"
+      - "127.0.1.5:53:8600/udp"
+    restart: "always"
 
   registrator:
     image: "gliderlabs/registrator"
-    restart: always
+    command: "-internal -resync=5 consul://consul:8500"
+    labels:
+      SERVICE_NAME: "registrator-local"
     links:
       - "consul"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    restart: "always"
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock"
-    command: "-internal -resync=5 consul://consul:8500"
+
+  elasticsearch:
+    build:
+      context: "./services/elasticsearch"
+    labels:
+      SERVICE_NAME: "elasticsearch-local"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    volumes:
+     - "./conf/elasticsearch/templates:/usr/share/elasticsearch/config/templates"
+
+  logstash:
+    image: "logstash"
+    build:
+      context: "./services/logstash"
+    expose:
+      - 5000
+      - 12201
+    labels:
+      SERVICE_NAME: "logstash-local"
+    links:
+      - "elasticsearch"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+
+  kibana:
+    image: "kibana"
+    depends_on:
+      - "logstash"
+    labels:
+      SERVICE_NAME: "kibana-local"
+    links:
+      - "elasticsearch"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+
+  cadvisor:
+    image: "google/cadvisor"
+    command: "--logtostderr=true --port=80 --housekeeping_interval=10s --storage_driver=influxdb --storage_driver_host=influxdb:8086"
+    depends_on:
+      - "consul"
+      - "registrator"
+      - "logstash"
+    labels:
+      SERVICE_NAME: "cadvisor-local"
+    links:
+      - "influxdb"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    restart: "always"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+
+  influxdb:
+    image: "influxdb"
+    depends_on:
+      - "consul"
+      - "registrator"
+      - "logstash"
+    labels:
+      SERVICE_NAME: "influxdb-local"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    restart: "always"
+    volumes:
+      - "./data/influxdb:/var/lib/influxdb"
+
+  telegraf:
+    build:
+      context: "./services/telegraf"
+    depends_on:
+      - "consul"
+      - "registrator"
+      - "logstash"
+    environment:
+      HOST_MOUNT_PREFIX: "/rootfs"
+      HOST_PROC: "/rootfs/proc"
+      HOST_SYS: "/rootfs/sys"
+    labels:
+      SERVICE_NAME: "telegraf-local"
+    links:
+      - "consul"
+      - "elasticsearch"
+      - "influxdb"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    privileged: true
+    restart: "always"
+    volumes:
+      - "/sys:/rootfs/sys:ro"
+      - "/proc:/rootfs/proc:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/var/run:/var/run:rw"
+
+  grafana:
+    image: "grafana/grafana"
+    depends_on:
+      - "consul"
+      - "registrator"
+      - "logstash"
+    environment:
+      INFLUXDB_HOST: "influxdb"
+      INFLUXDB_PORT: "8086"
+      INFLUXDB_NAME: "cadvisor"
+      INFLUXDB_USER: "root"
+      INFLUXDB_PASS: "root"
+      INFLUXDB_GRAPHITE_ENABLED: "true"
+    labels:
+      SERVICE_NAME: "grafana-local"
+    links:
+      - "influxdb"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    restart: "always"
+    volumes:
+      - "./data/grafana/lib:/var/lib/grafana"
+      - "./data/grafana/plugins:/var/lib/grafana/plugins"
+      - "./data/grafana/log:/var/log/grafana"
