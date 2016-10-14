@@ -104,6 +104,8 @@ services:
       - "consul"
       - "registrator"
       - "logstash"
+    expose:
+      - 8083
     labels:
       SERVICE_NAME: "influxdb-local"
     logging:
