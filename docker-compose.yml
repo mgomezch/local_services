@@ -171,3 +171,22 @@ services:
       - "./data/grafana/lib:/var/lib/grafana"
       - "./data/grafana/plugins:/var/lib/grafana/plugins"
       - "./data/grafana/log:/var/log/grafana"
+
+#TODO: alerting with Kapacitor
+# kapacitor:
+#   image: "kapacitor"
+#   depends_on:
+#     - "consul"
+#     - "registrator"
+#     - "logstash"
+#   labels:
+#     SERVICE_NAME: "kapacitor-local"
+#   links:
+#     - "influxdb"
+#   logging:
+#     driver: "gelf"
+#     options:
+#       gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+#   restart: "always"
+#   volumes:
+#     - "./data/kapacitor:/var/lib/kapacitor"
