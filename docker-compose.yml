@@ -43,6 +43,7 @@ services:
       options:
         max-size: "10m"
         max-file: "10"
+    restart: "always"
     volumes:
      - "./conf/elasticsearch/templates:/usr/share/elasticsearch/config/templates"
 
@@ -62,6 +63,7 @@ services:
       options:
         max-size: "10m"
         max-file: "10"
+    restart: "always"
 
   kibana:
     image: "kibana"
@@ -75,6 +77,7 @@ services:
       driver: "gelf"
       options:
         gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    restart: "always"
 
   cadvisor:
     image: "google/cadvisor"
