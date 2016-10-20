@@ -45,7 +45,7 @@ services:
         max-file: "10"
     restart: "always"
     volumes:
-     - "./conf/elasticsearch/templates:/usr/share/elasticsearch/config/templates"
+     - "./data/elasticsearch:/usr/share/elasticsearch/data"
 
   logstash:
     image: "logstash"
@@ -99,7 +99,7 @@ services:
       - "/:/rootfs:ro"
       - "/var/run:/var/run:rw"
       - "/sys:/sys:ro"
-      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
 
   influxdb:
     image: "influxdb"
@@ -145,7 +145,7 @@ services:
     volumes:
       - "/sys:/rootfs/sys:ro"
       - "/proc:/rootfs/proc:ro"
-      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
       - "/var/run:/var/run:rw"
 
   grafana:
