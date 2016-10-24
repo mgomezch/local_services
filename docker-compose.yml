@@ -43,6 +43,8 @@ services:
       options:
         max-size: "10m"
         max-file: "10"
+    ports:
+      - "9200:9200"
     restart: "always"
     volumes:
      - "./data/elasticsearch:/usr/share/elasticsearch/data"
@@ -52,8 +54,8 @@ services:
     build:
       context: "./services/logstash"
     expose:
-      - 5000
-      - 12201
+      - "5000"
+      - "12201"
     labels:
       SERVICE_NAME: "logstash-local"
     links:
@@ -63,6 +65,9 @@ services:
       options:
         max-size: "10m"
         max-file: "10"
+    ports:
+      - "5000:5000"
+      - "12201:12201"
     restart: "always"
 
   kibana:
@@ -77,6 +82,8 @@ services:
       driver: "gelf"
       options:
         gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    ports:
+      - "5601:5601"
     restart: "always"
 
   cadvisor:
@@ -94,6 +101,8 @@ services:
       driver: "gelf"
       options:
         gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    ports:
+      - "10000:80"
     restart: "always"
     volumes:
       - "/:/rootfs:ro"
@@ -115,6 +124,8 @@ services:
       driver: "gelf"
       options:
         gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    ports:
+      - "8601:8601"
     restart: "always"
     volumes:
       - "./data/influxdb:/var/lib/influxdb"
@@ -169,6 +180,8 @@ services:
       driver: "gelf"
       options:
         gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    ports:
+      - "3000:3000"
     restart: "always"
     volumes:
       - "./data/grafana/lib:/var/lib/grafana"
