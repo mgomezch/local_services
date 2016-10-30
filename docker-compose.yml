@@ -92,7 +92,9 @@ services:
   kibana:
     image: "kibana"
     depends_on:
+      - "consul"
       - "logstash"
+      - "registrator"
     labels:
       SERVICE_NAME: "kibana-local"
     links:
@@ -110,8 +112,8 @@ services:
     command: "--logtostderr=true --port=80 --housekeeping_interval=10s --storage_driver=influxdb --storage_driver_host=influxdb:8086"
     depends_on:
       - "consul"
-      - "registrator"
       - "logstash"
+      - "registrator"
     labels:
       SERVICE_NAME: "cadvisor-local"
     links:
@@ -133,8 +135,8 @@ services:
     image: "influxdb"
     depends_on:
       - "consul"
-      - "registrator"
       - "logstash"
+      - "registrator"
     expose:
       - 8083
     labels:
@@ -154,8 +156,8 @@ services:
       context: "./services/telegraf"
     depends_on:
       - "consul"
-      - "registrator"
       - "logstash"
+      - "registrator"
     environment:
       HOST_MOUNT_PREFIX: "/rootfs"
       HOST_PROC: "/rootfs/proc"
@@ -182,8 +184,8 @@ services:
     image: "grafana/grafana"
     depends_on:
       - "consul"
-      - "registrator"
       - "logstash"
+      - "registrator"
     environment:
       INFLUXDB_HOST: "influxdb"
       INFLUXDB_PORT: "8086"
@@ -212,8 +214,8 @@ services:
 #   image: "kapacitor"
 #   depends_on:
 #     - "consul"
-#     - "registrator"
 #     - "logstash"
+#     - "registrator"
 #   labels:
 #     SERVICE_NAME: "kapacitor-local"
 #   links:
