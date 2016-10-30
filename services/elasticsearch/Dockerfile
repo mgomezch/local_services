@@ -1,4 +1,3 @@
-FROM elasticsearch
+FROM elasticsearch:5
 
-RUN plugin install delete-by-query
-RUN plugin install royrusso/elasticsearch-HQ
+RUN elasticsearch-plugin install x-pack --batch

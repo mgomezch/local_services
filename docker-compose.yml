@@ -36,6 +36,10 @@ services:
   elasticsearch:
     build:
       context: "./services/elasticsearch"
+    environment:
+      # Elasticsearch 5 uses 2.5 GB of RAM on start without these options.
+      # This limits it to about 900 MB.  Still ridiculous, but manageable.
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     labels:
       SERVICE_NAME: "elasticsearch-local"
     logging:
@@ -50,7 +54,7 @@ services:
      - "./data/elasticsearch:/usr/share/elasticsearch/data"
 
   logstash:
-    image: "logstash"
+    image: "logstash:5"
     build:
       context: "./services/logstash"
     expose:
@@ -90,7 +94,8 @@ services:
       - "./data/devpi:/var/lib/devpi"
 
   kibana:
-    image: "kibana"
+    build:
+      context: "./services/kibana"
     depends_on:
       - "consul"
       - "logstash"
