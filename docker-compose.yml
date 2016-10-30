@@ -70,6 +70,25 @@ services:
       - "12201:12201"
     restart: "always"
 
+  devpi:
+    build:
+      context: "./services/devpi"
+    depends_on:
+      - "logstash"
+    expose:
+      - "3141"
+    labels:
+      SERVICE_NAME: "devpi-local"
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash-local-12201.service.consul.test:12201"
+    ports:
+      - "3141:3141"
+    restart: "always"
+    volumes:
+      - "./data/devpi:/var/lib/devpi"
+
   kibana:
     image: "kibana"
     depends_on:
