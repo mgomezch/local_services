@@ -40,8 +40,9 @@ sudo adduser "${USER}" docker
 sudo rm -f '/etc/dnsmasq.d/docker' '/etc/dnsmasq.d/interfaces'
 
 # Set up local DNS server:
-sudo tee '/etc/dnsmasq.d/no-resolv' <<EOF
+sudo tee '/etc/dnsmasq.d/basic' <<EOF
 no-resolv
+bind-dynamic
 EOF
 
 # Use the Google public DNS servers as defaults:
@@ -52,6 +53,7 @@ EOF
 
 # Disable Network Manager dnsmasq instances:
 sudo sed -i '/etc/NetworkManager/NetworkManager.conf' -e 's/^dns=dnsmasq$/#&/'
+sudo rm -f '/etc/dnsmasq.d/network-manager'
 sudo pkill -f 'dnsmasq.*NetworkManager'
 
 # Reload local DNS configuration:
