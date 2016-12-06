@@ -36,8 +36,11 @@ sudo sh -c 'curl --retry 5 -L https://github.com/docker/compose/releases/downloa
 # Allow the current user to command the Docker daemon:
 sudo adduser "${USER}" docker
 
+# Remove leftover dnsmasq configuration files from old versions of this script:
+sudo rm -f '/etc/dnsmasq.d/docker' '/etc/dnsmasq.d/interfaces'
+
 # Set up local DNS server:
-sudo tee '/etc/dnsmasq.d/interfaces' <<EOF
+sudo tee '/etc/dnsmasq.d/no-resolv' <<EOF
 no-resolv
 EOF
 
@@ -47,14 +50,9 @@ server=8.8.8.8
 server=8.8.4.4
 EOF
 
-# Remove leftover dnsmasq configuration files from old versions of this script:
-sudo rm -f '/etc/dnsmasq.d/docker' '/etc/dnsmasq.d/interfaces'
-
 # Disable Network Manager dnsmasq instances:
 sudo sed -i '/etc/NetworkManager/NetworkManager.conf' -e 's/^dns=dnsmasq$/#&/'
-
-# Kill any dnsmasq instances started by Network Manager:
-sudo pkill dnsmasq
+sudo pkill -f 'dnsmasq.*NetworkManager'
 
 # Reload local DNS configuration:
 sudo service dnsmasq restart
@@ -68,7 +66,7 @@ sudo tee '/etc/docker/daemon.json' <<EOF
 EOF
 
 # Increase system resource limits:
-sudo tee /etc/sysctl.d/50-local-services.conf << EOF
+sudo tee '/etc/sysctl.d/50-local-services.conf' << EOF
 # Required by Elasticsearch 5:
 vm.max_map_count = 262144
 EOF
