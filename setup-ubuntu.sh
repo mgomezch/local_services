@@ -51,6 +51,11 @@ server=8.8.8.8
 server=8.8.4.4
 EOF
 
+# Use local Consul service DNS interface for domains under consul.test:
+sudo tee '/etc/dnsmasq.d/consul' <<EOF
+server=/consul.test/127.0.1.5
+EOF
+
 # Disable Network Manager dnsmasq instances:
 [[ -f '/etc/NetworkManager/NetworkManager.conf' ]] && \
   sudo sed -i '/etc/NetworkManager/NetworkManager.conf' -e 's/^dns=dnsmasq$/#&/'
