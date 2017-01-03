@@ -52,7 +52,8 @@ server=8.8.4.4
 EOF
 
 # Disable Network Manager dnsmasq instances:
-sudo sed -i '/etc/NetworkManager/NetworkManager.conf' -e 's/^dns=dnsmasq$/#&/'
+[[ -f '/etc/NetworkManager/NetworkManager.conf' ]] && \
+  sudo sed -i '/etc/NetworkManager/NetworkManager.conf' -e 's/^dns=dnsmasq$/#&/'
 sudo rm -f '/etc/dnsmasq.d/network-manager'
 sudo pkill -f 'dnsmasq.*NetworkManager'
 
