@@ -31,7 +31,7 @@ sudo apt-get install -y \
 sudo apt-get install -y python-ipaddress || true
 
 # Install Docker Compose through Docker:
-sudo sh -c 'curl --retry 5 -L https://github.com/docker/compose/releases/download/1.9.0/run.sh > /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose'
+sudo sh -c 'curl --retry 5 -L https://github.com/docker/compose/releases/download/1.10.0/run.sh > /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose'
 
 # Allow the current user to command the Docker daemon:
 sudo adduser "${USER}" docker
