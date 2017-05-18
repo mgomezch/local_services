@@ -37,15 +37,35 @@ sudo sh -c 'curl --retry 5 -L https://github.com/docker/compose/releases/downloa
 sudo adduser "${USER}" docker
 
 # Remove leftover dnsmasq configuration files from old versions of this script:
-sudo rm -f '/etc/dnsmasq.d/docker' '/etc/dnsmasq.d/interfaces'
+sudo rm -f '/etc/dnsmasq.d/'{'docker','interfaces'}
 
-# Set up local DNS server:
+# Set up a local DNS forwarding server on the current host.  This server will be
+# in charge of DNS resolution for all locally executed applications as well as
+# any Docker containers managed by this host, as it will be available on the
+# host's loopback interface as well as the host's address on the Docker bridge
+# network interface.
+#
+# The no-resolv option makes the local dnsmasq instance ignore the pre-existing
+# DNS servers defined in /etc/resolv.conf at the time the dnsmasq server starts,
+# which makes it rely instead on its configuration files to find suitable back
+# ends for each query it receives.
+#
+# The bind-dynamic option makes the local dnsmasq instance bind separate sockets
+# for each network interface, which is generally preferred, for security, to a
+# single socket listening on the wildcard address that relies on dnsmasq to
+# exclude unwanted requests in userspace.  The bind-address option, which is
+# mutually exclusive with the bind-dynamic option, also enables this behavior,
+# but will additionally adjust its set of listening sockets automatically on
+# network interface status changes, so it can start listening automatically on
+# network interfaces enabled after the dnsmasq daemon starts.  This is desired
+# since Docker creates network interfaces dynamically.
 sudo tee '/etc/dnsmasq.d/basic' <<EOF
 no-resolv
 bind-dynamic
 EOF
 
-# Use the Google public DNS servers as defaults:
+# Use the Google public DNS servers as the default back ends for DNS queries in
+# regions of the DNS namespace with no otherwise specified back end servers:
 sudo tee '/etc/dnsmasq.d/google' <<EOF
 server=8.8.8.8
 server=8.8.4.4
