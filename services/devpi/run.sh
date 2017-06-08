@@ -22,7 +22,7 @@ kill_tail() {
 trap kill_tail INT
 trap kill_tail TERM
 
-devpi-server --start --host 0.0.0.0 --port 3141 || \
+devpi-server --start --host 0.0.0.0 --port 3141 $([[ $initialize ]] && echo --init) || \
     { [ -f "$LOG_FILE" ] && cat "$LOG_FILE"; exit 1; }
 DEVPI_PID="$(cat $DEVPI_SERVERDIR/.xproc/devpi-server/xprocess.PID)"
 
